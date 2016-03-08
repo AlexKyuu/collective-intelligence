@@ -169,3 +169,9 @@ def transform_prefs(prefs):
             result[item][person] = prefs[person][item]
 
     return result
+
+
+# 新增方法
+def test():
+    result = 0
+    return result
