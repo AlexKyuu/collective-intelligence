@@ -113,7 +113,7 @@ def sim_pearson(prefs, p1, p2):
 
 # 从反映偏好的字典中返回最为匹配者
 # 返回结果的个数和相似度函数均为可选参数
-def top_matches(prefs, person, n = 5, similarity = sim_pearson):
+def top_matches(prefs, person, n=5, similarity=sim_pearson):
     scores = [(similarity(prefs, person, other), other)
               for other in prefs if other != person]
 
@@ -124,7 +124,7 @@ def top_matches(prefs, person, n = 5, similarity = sim_pearson):
 
 
 # 利用所有他人评价值的加权平均, 为某人提供建议
-def get_recommendations(prefs, person, similarity = sim_pearson):
+def get_recommendations(prefs, person, similarity=sim_pearson):
     totals = {}
     sim_sums = {}
     for other in prefs:
