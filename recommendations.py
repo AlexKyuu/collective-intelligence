@@ -171,7 +171,72 @@ def transform_prefs(prefs):
     return result
 
 
-# 新增方法
-def test():
-    result = 0
+# 构造物品比较数据集
+def calculate_similar_items(prefs, n=10):
+    # 建立字典, 以给出与这些物品最为相近的所有其他物品
+    result = {}
+
+    # 以物品为中心对偏好矩阵实施倒置处理
+    item_prefs = transform_prefs(prefs)
+    c = 0
+    for item in item_prefs:
+        # 针对大数据集更新状态变量
+        c += 1
+        if c % 100 == 0: print "%d / %d" % (c, len(item_prefs))
+
+        # 寻找最为相近的物品
+        scores = top_matches(item_prefs, item, n=n, similarity=sim_distance)
+        result[item] = scores
+
     return result
+
+
+# 获得推荐
+def get_recommended_items(prefs, item_match, user):
+    user_rattings = prefs[user]
+    scores = {}
+    total_sim = {}
+
+    # 循环遍历由当前用户评分的物品
+    for (item, rating) in user_rattings.items():
+
+        # 循环遍历与当前物品相近的物品
+        for (similarity, item2) in item_match[item]:
+
+            # 如果该用户已经对当前物品做过评价, 则将其忽略
+            if item2 in user_rattings: continue
+
+            # 评价值与相似度的加权之和
+            scores.setdefault(item2, 0)
+            scores[item2] += similarity * rating
+
+            # 全部相似度之和
+            total_sim.setdefault(item2, 0)
+            total_sim[item2] += similarity
+
+    # 将每个合计值初一加权和, 求出平均值
+    rankings = [(score / total_sim[item], item) for item, score in scores.items()]
+
+    # 按最高值到最低值的顺序, 返回评分结果
+    rankings.sort()
+    rankings.reverse()
+    return rankings
+
+
+# 使用 MovieLens 数据集
+def load_movie_lens(path='/data/movielens'):
+
+    # 获取影片标题
+    movies = {}
+    for line in open(path + '/u.item'):
+        (id, title) = line.split('|')[0:2]
+        movies[id] = title
+
+    # 加载数据
+    prefs = {}
+    for line in open(path + '/u.data'):
+        (user, movieid, rating, ts) = line.split('\t')
+        prefs.setdefault(user, {})
+        prefs[user][movies[movieid]] = float(rating)
+
+    return prefs
